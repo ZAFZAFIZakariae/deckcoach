@@ -10,7 +10,16 @@ async function fetchPlayerData(tag) {
   const encodedTag = encodeURIComponent(tag.trim());
   const response = await fetch(`${API_BASE_URL}/player/${encodedTag}`);
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
+    let message = `API request failed with status ${response.status}`;
+    try {
+      const payload = await response.json();
+      if (payload?.error) {
+        message = payload.error;
+      }
+    } catch (err) {
+      // ignore JSON parse errors and keep default message
+    }
+    throw new Error(message);
   }
   return response.json();
 }
