@@ -1,6 +1,14 @@
 const axios = require('axios');
 const { CR_API_TOKEN, CR_API_BASE_URL } = require('../config');
 
+function assertApiToken() {
+  if (!CR_API_TOKEN || CR_API_TOKEN === "<YOUR_API_TOKEN>") {
+    throw new Error(
+      "Missing CR_API_TOKEN. Create a .env file in backend/ with CR_API_TOKEN from the Clash Royale developer portal."
+    );
+  }
+}
+
 // Create a pre-configured Axios instance for Clash Royale API
 const apiClient = axios.create({
   baseURL: CR_API_BASE_URL,
@@ -15,6 +23,7 @@ const apiClient = axios.create({
  * Includes stats like name, level, trophies, best trophies, current arena, etc.
  */
 async function getPlayerProfile(playerTag) {
+  assertApiToken();
   // Ensure the tag is URL-encoded (API expects %23 instead of # in the URL):contentReference[oaicite:4]{index=4}
   const encodedTag = encodeURIComponent(playerTag.startsWith('#') ? playerTag : `#${playerTag}`);
   const response = await apiClient.get(`/players/${encodedTag}`);
@@ -26,6 +35,7 @@ async function getPlayerProfile(playerTag) {
  * If the API does not provide a direct "cards" endpoint, this could be part of profile or another approach.
  */
 async function getPlayerCards(playerTag) {
+  assertApiToken();
   const encodedTag = encodeURIComponent(playerTag.startsWith('#') ? playerTag : `#${playerTag}`);
   const response = await apiClient.get(`/players/${encodedTag}/cards`);
   // The API might return an object with an "items" array for cards
@@ -37,6 +47,7 @@ async function getPlayerCards(playerTag) {
  * This can be used to analyze the player's history (e.g., favorite archetypes, common opponents).
  */
 async function getPlayerBattleLog(playerTag) {
+  assertApiToken();
   const encodedTag = encodeURIComponent(playerTag.startsWith('#') ? playerTag : `#${playerTag}`);
   const response = await apiClient.get(`/players/${encodedTag}/battlelog`);
   return response.data;  // returns an array of battle objects

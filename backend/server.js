@@ -26,7 +26,12 @@ app.get('/api/player/:tag', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in /api/player/:tag:', error);
-    res.status(500).json({ error: error.message });
+    const status = error.response?.status || 500;
+    const details = error.response?.data?.message;
+    const message = details
+      ? `Clash Royale API error: ${details}`
+      : error.message || 'Unknown error';
+    res.status(status).json({ error: message });
   }
 });
 
