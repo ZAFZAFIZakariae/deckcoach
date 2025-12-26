@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Hog EQ Cycle",
+    "archetype": "Hog Rider Cycle",
+    "cards": ["Hog Rider", "Earthquake", "The Log", "Musketeer", "Cannon", "Skeletons", "Ice Spirit", "Knight"],
+    "keyCards": ["Hog Rider", "Earthquake"],
+    "flexCards": ["Musketeer", "Knight"]
+  },
+  {
+    "name": "Lava Loon",
+    "archetype": "Lava Hound Beatdown",
+    "cards": ["Lava Hound", "Balloon", "Mega Minion", "Inferno Dragon", "Skeleton Dragons", "Tombstone", "Barbarian Barrel", "Arrows"],
+    "keyCards": ["Lava Hound", "Balloon"],
+    "flexCards": ["Mega Minion", "Skeleton Dragons"]
+  },
+  {
+    "name": "Golem Beatdown",
+    "archetype": "Golem Beatdown",
+    "cards": ["Golem", "Night Witch", "Baby Dragon", "Mega Minion", "Lumberjack", "Electro Dragon", "Barbarian Barrel", "Lightning"],
+    "keyCards": ["Golem", "Night Witch"],
+    "flexCards": ["Baby Dragon", "Mega Minion"]
+  }
+]
