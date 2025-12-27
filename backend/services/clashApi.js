@@ -106,19 +106,19 @@ async function getBattleLog(tag) {
     }
   });
   const battles = response.data ?? [];
-  const rankedBattle = battles.find(battle => {
-    const gameModeName = battle.gameMode?.name;
-    const isLadderMode = gameModeName === 'Ladder' || gameModeName === 'Path of Legends';
+  const soloBattle = battles.find(battle => {
     const team = Array.isArray(battle.team) ? battle.team : [];
     const cards = team[0]?.cards;
     const hasDeck = Array.isArray(cards) && cards.length === 8;
     const isSingle = team.length === 1;
-    return hasDeck && isSingle && (isLadderMode || battle.type === 'PvP');
+    const battleType = typeof battle.type === 'string' ? battle.type.toLowerCase() : '';
+    const isTwoVTwo = battleType.includes('2v2');
+    return hasDeck && isSingle && !isTwoVTwo;
   });
-  if (!rankedBattle) {
+  if (!soloBattle) {
     return null;
   }
-  const team = rankedBattle.team ?? [];
+  const team = soloBattle.team ?? [];
   return team[0].cards.map(card => card.name);
 }
 
