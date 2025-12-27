@@ -42,7 +42,7 @@ function App() {
       } catch (err) {
         console.error(err);
         if (mounted) {
-          setTopDecksError("Failed to load top decks. Please try again later.");
+          setTopDecksError(err.message || "Failed to load top decks. Please try again later.");
         }
       } finally {
         if (mounted) {
