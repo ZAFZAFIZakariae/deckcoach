@@ -85,6 +85,11 @@ async function getTopPlayers(playerLimit = 50, pageSize = 200) {
       }
     });
     const items = response.data?.items ?? [];
+    if (!afterCursor && items.length === 0) {
+      const apiReason = response.data?.reason || response.data?.message;
+      const detail = apiReason ? ` Reason: ${apiReason}` : '';
+      throw new Error(`Clash Royale rankings returned zero players on the first page.${detail}`);
+    }
     console.log(`Fetched ${items.length} ranked players from Clash Royale API.`);
     players.push(...items);
     const nextCursor = response.data?.paging?.cursors?.after;
