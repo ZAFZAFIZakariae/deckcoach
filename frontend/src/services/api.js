@@ -24,4 +24,22 @@ async function fetchPlayerData(tag) {
   return response.json();
 }
 
-export const api = { fetchPlayerData };
+async function fetchTopDecks() {
+  const response = await fetch(`${API_BASE_URL}/top-decks`);
+  if (!response.ok) {
+    let message = `API request failed with status ${response.status}`;
+    try {
+      const payload = await response.json();
+      if (payload?.error) {
+        message = payload.error;
+      }
+    } catch (err) {
+      // ignore JSON parse errors and keep default message
+    }
+    throw new Error(message);
+  }
+  const payload = await response.json();
+  return payload.decks || [];
+}
+
+export const api = { fetchPlayerData, fetchTopDecks };

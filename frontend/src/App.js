@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { api } from './services/api';
 import TagInput from './components/TagInput';
@@ -10,6 +10,9 @@ function App() {
   const [playerData, setPlayerData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [topDecks, setTopDecks] = useState([]);
+  const [topDecksError, setTopDecksError] = useState("");
+  const [topDecksLoading, setTopDecksLoading] = useState(false);
 
   // Handler to initiate fetching player data from backend
   const handleFetchData = async (playerTag) => {
@@ -26,6 +29,34 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    let mounted = true;
+    const fetchDecks = async () => {
+      setTopDecksError("");
+      setTopDecksLoading(true);
+      try {
+        const decks = await api.fetchTopDecks();
+        if (mounted) {
+          setTopDecks(decks);
+        }
+      } catch (err) {
+        console.error(err);
+        if (mounted) {
+          setTopDecksError("Failed to load top decks. Please try again later.");
+        }
+      } finally {
+        if (mounted) {
+          setTopDecksLoading(false);
+        }
+      }
+    };
+
+    fetchDecks();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="App" style={{ padding: '1em' }}>
       <h1>DeckCoach <small style={{ fontSize: '0.6em' }}>for Clash Royale</small></h1>
@@ -35,12 +66,17 @@ function App() {
       {/* Error and loading states */}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {loading && <p>Loading player data...</p>}
+
+      <section style={{ marginTop: '1.5em' }}>
+        {topDecksLoading && <p>Loading top decks...</p>}
+        {topDecksError && <p style={{ color: 'red' }}>{topDecksError}</p>}
+        {!topDecksLoading && !topDecksError && <DeckList decks={topDecks} />}
+      </section>
       
       {/* Dashboard view: show profile and top deck suggestions when data is loaded */}
       {playerData && !loading && (
         <div className="dashboard">
           <Profile profile={playerData.profile} />
-          <DeckList decks={playerData.suggestions} />
           {/* Link to navigate to the Cards page to view full collection */}
           <p><Link to="/cards">View All Cards in Collection</Link></p>
         </div>
