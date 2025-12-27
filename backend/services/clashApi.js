@@ -138,8 +138,28 @@ async function getTopPlayers(playerLimit = 50, pageSize = 200) {
       params.set('after', afterCursor);
     }
 
-    let response = await fetchRankedPlayers(params, locationId);
-    let items = response.data?.items ?? [];
+    let response;
+    let items = [];
+    try {
+      response = await fetchRankedPlayers(params, locationId);
+      items = response.data?.items ?? [];
+    } catch (error) {
+      const status = error?.response?.status;
+      const apiReason = error?.response?.data?.reason || error?.response?.data?.message;
+      const isRankingsNotFound = status === 404 && apiReason === 'Rankings not found for location';
+      if (isRankingsNotFound && locationId) {
+        locationId = null;
+        response = await fetchRankedPlayers(params, locationId);
+        items = response.data?.items ?? [];
+      } else if (isRankingsNotFound && !locationId) {
+        const fallbackLocationId = await getGlobalLocationId();
+        locationId = fallbackLocationId;
+        response = await fetchRankedPlayers(params, locationId);
+        items = response.data?.items ?? [];
+      } else {
+        throw error;
+      }
+    }
     if (!afterCursor && items.length === 0) {
       const fallbackLocationId = await getGlobalLocationId();
       if (fallbackLocationId && fallbackLocationId !== locationId) {
