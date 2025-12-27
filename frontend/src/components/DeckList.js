@@ -2,7 +2,13 @@ import React from 'react';
 
 function DeckList({ decks }) {
   if (!decks || decks.length === 0) {
-    return <p>No top decks available.</p>;
+    return (
+      <p>
+        No top decks available yet. Make sure the backend is running and your
+        Clash Royale API token is set in <code>backend/.env</code>, then refresh
+        the page.
+      </p>
+    );
   }
 
   return (

@@ -39,6 +39,9 @@ async function fetchTopDecks() {
     throw new Error(message);
   }
   const payload = await response.json();
+  if (payload?.error) {
+    throw new Error(payload.error);
+  }
   return payload.decks || [];
 }
 
