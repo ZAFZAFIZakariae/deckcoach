@@ -17,9 +17,43 @@ const apiClient = axios.create({
 
 const REQUEST_DELAY_MS = 100;
 let cardCatalogPromise = null;
+let globalLocationIdPromise = null;
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function getGlobalLocationId() {
+  assertApiToken();
+  if (!globalLocationIdPromise) {
+    globalLocationIdPromise = apiClient.get('/locations?limit=300', {
+      headers: {
+        Authorization: `Bearer ${CR_API_TOKEN}`
+      }
+    }).then(response => {
+      const items = response.data?.items ?? [];
+      const match = items.find(item => item?.name?.toLowerCase() === 'global');
+      if (!match?.id) {
+        throw new Error('Unable to resolve the global location ID from the Clash Royale API.');
+      }
+      return match.id;
+    }).catch(error => {
+      globalLocationIdPromise = null;
+      throw error;
+    });
+  }
+  return globalLocationIdPromise;
+}
+
+async function fetchRankedPlayers(params, locationId) {
+  const endpoint = locationId
+    ? `/locations/${locationId}/rankings/players`
+    : '/locations/global/rankings/players';
+  return apiClient.get(`${endpoint}?${params.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${CR_API_TOKEN}`
+    }
+  });
 }
 
 /**
@@ -72,6 +106,7 @@ async function getTopPlayers(playerLimit = 50, pageSize = 200) {
   assertApiToken();
   const players = [];
   let afterCursor = null;
+  let locationId = null;
 
   while (players.length < playerLimit) {
     const params = new URLSearchParams({ limit: `${pageSize}` });
@@ -79,12 +114,16 @@ async function getTopPlayers(playerLimit = 50, pageSize = 200) {
       params.set('after', afterCursor);
     }
 
-    const response = await apiClient.get(`/locations/global/rankings/players?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${CR_API_TOKEN}`
+    let response = await fetchRankedPlayers(params, locationId);
+    let items = response.data?.items ?? [];
+    if (!afterCursor && items.length === 0) {
+      const fallbackLocationId = await getGlobalLocationId();
+      if (fallbackLocationId && fallbackLocationId !== locationId) {
+        locationId = fallbackLocationId;
+        response = await fetchRankedPlayers(params, locationId);
+        items = response.data?.items ?? [];
       }
-    });
-    const items = response.data?.items ?? [];
+    }
     if (!afterCursor && items.length === 0) {
       const apiReason = response.data?.reason || response.data?.message;
       const detail = apiReason ? ` Reason: ${apiReason}` : '';
