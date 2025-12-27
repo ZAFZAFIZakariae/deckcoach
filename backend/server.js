@@ -38,6 +38,37 @@ app.get('/api/player/:tag', async (req, res) => {
   }
 });
 
+app.get('/api/top-decks', async (req, res) => {
+  try {
+    const decks = await clashApi.getTopDecks();
+    const cardCatalog = await clashApi.getCardCatalog();
+    const cardMap = new Map(
+      cardCatalog.map(card => [card.name, card.iconUrls?.medium || card.iconUrls?.small || null])
+    );
+
+    const hydratedDecks = decks.map(deck => ({
+      cards: deck.cards.map(name => ({
+        name,
+        iconUrl: cardMap.get(name) || null
+      })),
+      count: deck.count
+    }));
+
+    res.json({ decks: hydratedDecks });
+  } catch (error) {
+    console.error('Error in /api/top-decks:', error);
+    const status = error.response?.status || 500;
+    const details = error.response?.data?.message;
+    const isTimeout = error.code === 'ECONNABORTED';
+    const message = details
+      ? `Clash Royale API error: ${details}`
+      : isTimeout
+        ? 'Clash Royale API request timed out. Please try again shortly.'
+        : error.message || 'Unknown error';
+    res.status(status).json({ error: message });
+  }
+});
+
 // Start the server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
