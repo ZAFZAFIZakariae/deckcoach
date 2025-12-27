@@ -28,9 +28,12 @@ app.get('/api/player/:tag', async (req, res) => {
     console.error('Error in /api/player/:tag:', error);
     const status = error.response?.status || 500;
     const details = error.response?.data?.message;
+    const isTimeout = error.code === 'ECONNABORTED';
     const message = details
       ? `Clash Royale API error: ${details}`
-      : error.message || 'Unknown error';
+      : isTimeout
+        ? 'Clash Royale API request timed out. Please try again shortly.'
+        : error.message || 'Unknown error';
     res.status(status).json({ error: message });
   }
 });

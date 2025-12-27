@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { CR_API_TOKEN, CR_API_BASE_URL } = require('../config');
+const { CR_API_TOKEN, CR_API_BASE_URL, CR_API_TIMEOUT_MS } = require('../config');
 
 function assertApiToken() {
   if (!CR_API_TOKEN || CR_API_TOKEN === "<YOUR_API_TOKEN>") {
@@ -12,7 +12,7 @@ function assertApiToken() {
 // Create a pre-configured Axios instance for Clash Royale API
 const apiClient = axios.create({
   baseURL: CR_API_BASE_URL,
-  timeout: 5000,
+  timeout: CR_API_TIMEOUT_MS,
   headers: {
     "Authorization": `Bearer ${CR_API_TOKEN}`  // attach token to every request:contentReference[oaicite:3]{index=3}
   }
