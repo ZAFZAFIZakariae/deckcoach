@@ -68,7 +68,7 @@ async function getPlayerBattleLog(playerTag) {
   return response.data;  // returns an array of battle objects
 }
 
-async function getTopPlayers(playerLimit = 1000, pageSize = 200) {
+async function getTopPlayers(playerLimit = 50, pageSize = 200) {
   assertApiToken();
   const players = [];
   let afterCursor = null;
@@ -85,6 +85,7 @@ async function getTopPlayers(playerLimit = 1000, pageSize = 200) {
       }
     });
     const items = response.data?.items ?? [];
+    console.log(`Fetched ${items.length} ranked players from Clash Royale API.`);
     players.push(...items);
     const nextCursor = response.data?.paging?.cursors?.after;
     if (nextCursor) {
@@ -122,7 +123,7 @@ async function getBattleLog(tag) {
   return team[0].cards.map(card => card.name);
 }
 
-async function getTopDecks(playerLimit = 1000) {
+async function getTopDecks(playerLimit = 50) {
   const players = await getTopPlayers(playerLimit);
   const deckMap = new Map();
 
