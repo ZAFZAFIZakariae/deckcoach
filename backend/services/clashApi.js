@@ -37,9 +37,8 @@ async function getPlayerProfile(playerTag) {
 async function getPlayerCards(playerTag) {
   assertApiToken();
   const encodedTag = encodeURIComponent(playerTag.startsWith('#') ? playerTag : `#${playerTag}`);
-  const response = await apiClient.get(`/players/${encodedTag}/cards`);
-  // The API might return an object with an "items" array for cards
-  return response.data.items || response.data;
+  const response = await apiClient.get(`/players/${encodedTag}`);
+  return response.data.cards || [];
 }
 
 /**
