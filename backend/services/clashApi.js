@@ -106,14 +106,20 @@ async function getBattleLog(tag) {
     }
   });
   const battles = response.data ?? [];
-  const rankedBattle = battles.find(battle => battle.type === 'ranked' || battle.type === 'ladder');
+  const rankedBattle = battles.find(battle => {
+    const gameModeName = battle.gameMode?.name;
+    const isLadderMode = gameModeName === 'Ladder' || gameModeName === 'Path of Legends';
+    const team = Array.isArray(battle.team) ? battle.team : [];
+    const cards = team[0]?.cards;
+    const hasDeck = Array.isArray(cards) && cards.length === 8;
+    const isSingle = team.length === 1;
+    return hasDeck && isSingle && (isLadderMode || battle.type === 'PvP');
+  });
   if (!rankedBattle) {
     return null;
   }
   const team = rankedBattle.team ?? [];
-  return team
-    .flatMap(player => player.cards ?? [])
-    .map(card => card.name);
+  return team[0].cards.map(card => card.name);
 }
 
 async function getTopDecks(playerLimit = 1000) {
