@@ -27,6 +27,7 @@ const GLOBAL_LEVEL_OFFSETS = {
   legendary: 8,
   champion: 10,
 };
+const GLOBAL_MAX_LEVEL = 16;
 
 function getGlobalLevel(internalLevel, rarity) {
   const offset = GLOBAL_LEVEL_OFFSETS[rarity] ?? 0;
@@ -87,7 +88,7 @@ function CardList({ cards }) {
               <tr key={card.name}>
                 <td>{card.name}</td>
                 <td>
-                  {card.level}{card.maxLevel ? ` / ${card.maxLevel}` : ""}
+                  {currentGlobalLevel} / {GLOBAL_MAX_LEVEL}
                 </td>
                 <td>{card.count}</td>
                 <td>{card.rarity}</td>
