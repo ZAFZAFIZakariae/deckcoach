@@ -26,18 +26,42 @@ function delay(ms) {
 async function getGlobalLocationId() {
   assertApiToken();
   if (!globalLocationIdPromise) {
-    globalLocationIdPromise = apiClient.get('/locations?limit=300', {
-      headers: {
-        Authorization: `Bearer ${CR_API_TOKEN}`
+    globalLocationIdPromise = (async () => {
+      let afterCursor = null;
+      let totalChecked = 0;
+      let lastResponse = null;
+
+      while (true) {
+        const params = new URLSearchParams({ limit: '300' });
+        if (afterCursor) {
+          params.set('after', afterCursor);
+        }
+        lastResponse = await apiClient.get(`/locations?${params.toString()}`, {
+          headers: {
+            Authorization: `Bearer ${CR_API_TOKEN}`
+          }
+        });
+        const items = lastResponse.data?.items ?? [];
+        totalChecked += items.length;
+        const match = items.find(item => {
+          const name = item?.name?.trim().toLowerCase();
+          return name === 'global' || name === 'international';
+        });
+        if (match?.id) {
+          return match.id;
+        }
+        const nextCursor = lastResponse.data?.paging?.cursors?.after;
+        if (nextCursor) {
+          afterCursor = nextCursor;
+        } else {
+          break;
+        }
       }
-    }).then(response => {
-      const items = response.data?.items ?? [];
-      const match = items.find(item => item?.name?.toLowerCase() === 'global');
-      if (!match?.id) {
-        throw new Error('Unable to resolve the global location ID from the Clash Royale API.');
-      }
-      return match.id;
-    }).catch(error => {
+
+      const apiReason = lastResponse?.data?.reason || lastResponse?.data?.message;
+      const detail = apiReason ? ` Reason: ${apiReason}` : '';
+      throw new Error(`Unable to resolve the global location ID from the Clash Royale API after checking ${totalChecked} locations.${detail}`);
+    })().catch(error => {
       globalLocationIdPromise = null;
       throw error;
     });
