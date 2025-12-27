@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { CR_API_TOKEN } = require('./config');
 const clashApi = require('./services/clashApi');
 const deckAdvisor = require('./services/deckAdvisor');
 
@@ -40,7 +39,7 @@ app.get('/api/player/:tag', async (req, res) => {
 
 app.get('/api/top-decks', async (req, res) => {
   try {
-    const decks = await clashApi.getTopDecks();
+    const { decks, warning, source } = await clashApi.getTopDecks();
     const cardCatalog = await clashApi.getCardCatalog();
     const cardMap = new Map(
       cardCatalog.map(card => [card.name, card.iconUrls?.medium || card.iconUrls?.small || null])
@@ -51,13 +50,13 @@ app.get('/api/top-decks', async (req, res) => {
         name,
         iconUrl: cardMap.get(name) || null
       })),
-      count: deck.count
+      count: deck.count,
+      archetype: deck.archetype || 'Unknown'
     }));
 
-    res.json({ decks: hydratedDecks });
+    res.json({ decks: hydratedDecks, warning, source });
   } catch (error) {
     console.error('Error in /api/top-decks:', error);
-    const status = error.response?.status || 500;
     const details = error.response?.data?.message;
     const isTimeout = error.code === 'ECONNABORTED';
     const message = details
@@ -65,7 +64,7 @@ app.get('/api/top-decks', async (req, res) => {
       : isTimeout
         ? 'Clash Royale API request timed out. Please try again shortly.'
         : error.message || 'Unknown error';
-    res.status(status).json({ error: message });
+    res.status(200).json({ decks: [], warning: message, source: 'fallback' });
   }
 });
 
